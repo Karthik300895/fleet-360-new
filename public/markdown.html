@@ -2485,9 +2485,9 @@
           localStorage.setItem('acl_adlc_project_markdown_files', JSON.stringify(files));
         } catch (e) {}
 
-        // Save to disk locally (No remote Git push during testing)
+        // Persist to disk (dev) or GitHub (Vercel production API)
         try {
-          await fetch('/api/save-markdown', {
+          const res = await fetch('/api/save-markdown', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -2498,10 +2498,22 @@
               autoPush: false,
             }),
           });
-        } catch (e) {}
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || data.success === false) {
+            const errMsg = data.error || data.message || `Save failed (${res.status})`;
+            setSyncStatus(errMsg, 'red');
+            showToast(errMsg, 'error');
+            return;
+          }
+        } catch (e) {
+          const errMsg = e instanceof Error ? e.message : 'Save request failed';
+          setSyncStatus(errMsg, 'red');
+          showToast(errMsg, 'error');
+          return;
+        }
 
         isDirty = false;
-        setSyncStatus('Saved locally to disk, VS Code & Github ✔', 'green');
+        setSyncStatus('Saved to GitHub ✔', 'green');
 
         if (status === 'Approved' || status === 'Accepted') {
           showToast(`🎉 Approved '${file.filename}' & Gate Unlocked!`, 'success');
