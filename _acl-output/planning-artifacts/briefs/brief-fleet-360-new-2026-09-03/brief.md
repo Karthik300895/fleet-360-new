@@ -1,7 +1,7 @@
 ---
 status: Approved
 reviewed_by: Manager (via Markdown Studio)
-review_timestamp: 2026-09-10T07:10:39.128Z
+review_timestamp: 2026-09-10T07:10:56.349Z
 gate_signature: ACL-STUDIO-APPROVAL-APPROVED
 workflow_mode: greenfield
 title: Fleet 360 — Product Brief
