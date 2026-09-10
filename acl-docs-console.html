@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ACL Docs Console</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        display: flex;
+        height: 100vh;
+        color: #333;
+      }
+      #sidebar {
+        width: 380px;
+        background: #f7f9fa;
+        border-right: 1px solid #e1e4e8;
+        display: flex;
+        flex-direction: column;
+      }
+      #sidebar-header {
+        padding: 16px;
+        border-bottom: 1px solid #e1e4e8;
+      }
+      #sidebar-header h1 {
+        margin: 0 0 4px;
+        font-size: 16px;
+      }
+      #sidebar-header p {
+        margin: 0 0 12px;
+        font-size: 12px;
+        color: #57606a;
+      }
+      .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .control-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+      }
+      .control-label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #57606a;
+        width: 100%;
+      }
+      .seg-btn,
+      .toolbar-btn {
+        border: 1px solid #d0d7de;
+        background: #fff;
+        color: #24292f;
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 12px;
+        cursor: pointer;
+        line-height: 1.2;
+      }
+      .seg-btn:hover,
+      .toolbar-btn:hover {
+        background: #f3f4f6;
+      }
+      .seg-btn.active {
+        background: #0969da;
+        border-color: #0969da;
+        color: #fff;
+        font-weight: 600;
+      }
+      .toolbar-btn.primary {
+        background: #1f883d;
+        border-color: #1f883d;
+        color: #fff;
+        font-weight: 600;
+      }
+      .toolbar-btn.primary:hover {
+        background: #1a7f37;
+      }
+      .toolbar-btn.approve {
+        background: #1f883d;
+        border-color: #1f883d;
+        color: #fff;
+        font-weight: 600;
+      }
+      .toolbar-btn.approve:hover {
+        background: #1a7f37;
+      }
+      .toolbar-btn.reject {
+        background: #cf222e;
+        border-color: #cf222e;
+        color: #fff;
+        font-weight: 600;
+      }
+      .toolbar-btn.reject:hover {
+        background: #a40e26;
+      }
+      .toolbar-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .status-badge {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 1px 6px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        vertical-align: middle;
+      }
+      .status-badge.draft {
+        background: #eaeef2;
+        color: #57606a;
+      }
+      .status-badge.pending-review {
+        background: #fff8c5;
+        color: #9a6700;
+      }
+      .status-badge.approved {
+        background: #dafbe1;
+        color: #1a7f37;
+      }
+      .status-badge.rejected {
+        background: #ffebe9;
+        color: #cf222e;
+      }
+      .status-badge.final,
+      .status-badge.complete {
+        background: #ddf4ff;
+        color: #0969da;
+      }
+      #folder-filter {
+        width: 100%;
+        padding: 7px 10px;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        font-size: 12px;
+        background: #fff;
+        color: #24292f;
+      }
+      #tree-view {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px;
+      }
+      .section {
+        margin-bottom: 16px;
+      }
+      .section-title {
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #57606a;
+        margin: 0 0 6px;
+        padding: 0 10px;
+      }
+      .folder-group {
+        margin-bottom: 10px;
+      }
+      .folder-title {
+        font-weight: 600;
+        font-size: 12px;
+        color: #57606a;
+        padding: 6px 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .file {
+        padding: 8px 10px;
+        margin: 2px 0;
+        cursor: pointer;
+        border-radius: 4px;
+        font-size: 13px;
+        color: #0969da;
+        word-break: break-word;
+        line-height: 1.35;
+      }
+      .file:hover {
+        background: #eaeef2;
+      }
+      .file.active {
+        background: #ddf4ff;
+        color: #0969da;
+        font-weight: 600;
+      }
+      .file .path {
+        display: block;
+        font-size: 11px;
+        color: #8c959f;
+        font-weight: 400;
+        margin-top: 2px;
+      }
+      #content-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        background: #ffffff;
+      }
+      #doc-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        padding: 12px 24px;
+        border-bottom: 1px solid #e1e4e8;
+        background: #f6f8fa;
+      }
+      #doc-path {
+        flex: 1;
+        min-width: 160px;
+        font-size: 12px;
+        color: #57606a;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        word-break: break-all;
+      }
+      #content-scroll {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px 48px 48px;
+      }
+      #markdown-body {
+        max-width: 880px;
+        margin: 0 auto;
+        line-height: 1.6;
+      }
+      #markdown-body h1,
+      #markdown-body h2,
+      #markdown-body h3 {
+        margin-top: 1.4em;
+      }
+      #markdown-body pre {
+        background: #f6f8fa;
+        padding: 12px;
+        border-radius: 6px;
+        overflow-x: auto;
+      }
+      #markdown-body code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.9em;
+      }
+      #markdown-editor {
+        display: none;
+        width: 100%;
+        max-width: 960px;
+        margin: 0 auto;
+        min-height: 70vh;
+        padding: 16px;
+        border: 1px solid #d0d7de;
+        border-radius: 8px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 13px;
+        line-height: 1.5;
+        resize: vertical;
+      }
+      #markdown-editor.visible {
+        display: block;
+      }
+      #markdown-body.hidden {
+        display: none;
+      }
+      #save-status {
+        font-size: 12px;
+        color: #57606a;
+        width: 100%;
+      }
+      #save-status.ok {
+        color: #1a7f37;
+      }
+      #save-status.err {
+        color: #cf222e;
+      }
+      .placeholder {
+        text-align: center;
+        color: #8c959f;
+        margin-top: 20%;
+      }
+      .error {
+        color: #cf222e;
+        padding: 16px;
+      }
+      .secret-row {
+        display: none;
+        gap: 8px;
+        align-items: center;
+        width: 100%;
+      }
+      .secret-row.visible {
+        display: flex;
+      }
+      #edit-secret {
+        flex: 1;
+        max-width: 280px;
+        padding: 6px 10px;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="sidebar">
+      <div id="sidebar-header">
+        <h1>ACL Docs Console</h1>
+        <p id="view-hint">Sorted by created date (oldest → newest)</p>
+        <div class="controls">
+          <div class="control-row">
+            <span class="control-label">View</span>
+            <button type="button" class="seg-btn active" data-view="date-asc">Date ↑</button>
+            <button type="button" class="seg-btn" data-view="date-desc">Date ↓</button>
+            <button type="button" class="seg-btn" data-view="folder">Folder</button>
+            <button type="button" class="seg-btn" data-view="name">Name</button>
+          </div>
+          <div class="control-row">
+            <span class="control-label">Status filter</span>
+            <select id="status-filter" aria-label="Filter by status">
+              <option value="">All statuses</option>
+              <option value="pending-review">Pending review</option>
+              <option value="draft">Draft</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="final">Final</option>
+              <option value="complete">Complete</option>
+              <option value="unknown">Unknown</option>
+            </select>
+          </div>
+          <div class="control-row">
+            <span class="control-label">Folder filter</span>
+            <select id="folder-filter" aria-label="Filter by folder">
+              <option value="">All folders</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="tree-view">
+        <div class="placeholder" style="margin-top: 24px">Loading docs…</div>
+      </div>
+    </div>
+
+    <div id="content-wrapper">
+      <div id="doc-toolbar">
+        <div id="doc-path">No file selected</div>
+        <button type="button" class="toolbar-btn approve" id="btn-approve" disabled>Approve</button>
+        <button type="button" class="toolbar-btn reject" id="btn-reject" disabled>Reject</button>
+        <button type="button" class="toolbar-btn" id="btn-edit" disabled>Edit</button>
+        <button type="button" class="toolbar-btn" id="btn-cancel" hidden>Cancel</button>
+        <button type="button" class="toolbar-btn primary" id="btn-submit" hidden>Submit</button>
+        <div class="secret-row" id="secret-row">
+          <label for="edit-secret" class="control-label" style="width: auto; margin: 0">Edit secret</label>
+          <input id="edit-secret" type="password" autocomplete="off" placeholder="DOCS_EDIT_SECRET (if configured)" />
+        </div>
+        <div id="save-status" role="status" aria-live="polite"></div>
+      </div>
+      <div id="content-scroll">
+        <div id="markdown-body">
+          <div class="placeholder">Loading markdown files…</div>
+        </div>
+        <textarea id="markdown-editor" aria-label="Markdown editor" spellcheck="false"></textarea>
+      </div>
+    </div>
+
+    <script>
+      const treeView = document.getElementById('tree-view');
+      const markdownBody = document.getElementById('markdown-body');
+      const markdownEditor = document.getElementById('markdown-editor');
+      const viewHint = document.getElementById('view-hint');
+      const folderFilter = document.getElementById('folder-filter');
+      const statusFilter = document.getElementById('status-filter');
+      const docPath = document.getElementById('doc-path');
+      const btnApprove = document.getElementById('btn-approve');
+      const btnReject = document.getElementById('btn-reject');
+      const btnEdit = document.getElementById('btn-edit');
+      const btnCancel = document.getElementById('btn-cancel');
+      const btnSubmit = document.getElementById('btn-submit');
+      const saveStatus = document.getElementById('save-status');
+      const secretRow = document.getElementById('secret-row');
+      const editSecret = document.getElementById('edit-secret');
+
+      const VIEW_HINTS = {
+        'date-asc': 'Sorted by created date (oldest → newest)',
+        'date-desc': 'Sorted by created date (newest → oldest)',
+        folder: 'Grouped by folder structure',
+        name: 'Sorted by file name (A → Z)',
+      };
+
+      let allFiles = [];
+      let currentView = 'date-asc';
+      let currentFolder = '';
+      let currentStatus = '';
+      let activePath = null;
+      let activeFile = null;
+      let rawMarkdown = '';
+      let editing = false;
+      let saving = false;
+
+      const SECRET_KEY = 'acl.docsEditSecret';
+      editSecret.value = sessionStorage.getItem(SECRET_KEY) || '';
+      editSecret.addEventListener('change', () => {
+        sessionStorage.setItem(SECRET_KEY, editSecret.value);
+      });
+
+      marked.setOptions({
+        highlight: function (code, lang) {
+          if (lang && hljs.getLanguage(lang)) {
+            return hljs.highlight(code, { language: lang }).value;
+          }
+          return hljs.highlightAuto(code).value;
+        },
+      });
+
+      function setStatus(message, kind) {
+        saveStatus.textContent = message || '';
+        saveStatus.className = kind || '';
+      }
+
+      function parseFrontmatterStatus(text) {
+        if (!text || !text.startsWith('---')) return 'unknown';
+        const end = text.indexOf('\n---', 3);
+        if (end === -1) return 'unknown';
+        const fm = text.slice(3, end);
+        const match = fm.match(/^status:\s*["']?([A-Za-z0-9_-]+)["']?\s*$/m);
+        return match ? match[1].toLowerCase() : 'unknown';
+      }
+
+      function setFrontmatterStatus(text, status) {
+        if (!text.startsWith('---')) {
+          const today = new Date().toISOString().slice(0, 10);
+          return `---\nstatus: ${status}\nupdated: ${today}\n---\n\n${text}`;
+        }
+        const end = text.indexOf('\n---', 3);
+        if (end === -1) return text;
+        let fm = text.slice(3, end);
+        const body = text.slice(end + 4);
+        const today = new Date().toISOString().slice(0, 10);
+        if (/^status:\s*.+$/m.test(fm)) {
+          fm = fm.replace(/^status:\s*.+$/m, `status: ${status}`);
+        } else {
+          fm = `\nstatus: ${status}` + fm;
+        }
+        if (/^updated:\s*.+$/m.test(fm)) {
+          fm = fm.replace(/^updated:\s*.+$/m, `updated: ${today}`);
+        } else {
+          fm += `\nupdated: ${today}`;
+        }
+        return `---${fm}\n---${body.startsWith('\n') ? body : `\n${body}`}`;
+      }
+
+      function renderMarkdown(text) {
+        markdownBody.innerHTML = marked.parse(text);
+        markdownBody.querySelectorAll('pre code').forEach((block) => {
+          hljs.highlightElement(block);
+        });
+      }
+
+      function setEditing(on) {
+        editing = on;
+        btnEdit.hidden = on;
+        btnCancel.hidden = !on;
+        btnSubmit.hidden = !on;
+        btnApprove.disabled = on || !activeFile;
+        btnReject.disabled = on || !activeFile;
+        secretRow.classList.toggle('visible', on);
+        markdownEditor.classList.toggle('visible', on);
+        markdownBody.classList.toggle('hidden', on);
+        if (on) {
+          markdownEditor.value = rawMarkdown;
+          markdownEditor.focus();
+          setStatus('Editing — Submit writes this file to GitHub.', '');
+        } else {
+          setStatus('', '');
+        }
+      }
+
+      function formatCreatedAt(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return '';
+        return d.toLocaleString(undefined, {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      }
+
+      function topLevelFolder(file) {
+        const parts = file.path.split('/');
+        return parts.length > 1 ? parts[0] : '(root)';
+      }
+
+      function populateFolderFilter(files) {
+        const folders = [...new Set(files.map(topLevelFolder))].sort((a, b) => a.localeCompare(b));
+        const previous = folderFilter.value;
+        folderFilter.innerHTML = '<option value="">All folders</option>';
+        for (const folder of folders) {
+          const opt = document.createElement('option');
+          opt.value = folder;
+          opt.textContent = folder;
+          folderFilter.appendChild(opt);
+        }
+        if (folders.includes(previous)) folderFilter.value = previous;
+      }
+
+      function filteredFiles() {
+        return allFiles.filter((f) => {
+          if (currentFolder && topLevelFolder(f) !== currentFolder) return false;
+          if (currentStatus && (f.docStatus || 'unknown') !== currentStatus) return false;
+          return true;
+        });
+      }
+
+      function sortedFiles(files) {
+        const list = [...files];
+        if (currentView === 'date-asc') {
+          list.sort((a, b) => a.createdAtMs - b.createdAtMs || a.path.localeCompare(b.path));
+        } else if (currentView === 'date-desc') {
+          list.sort((a, b) => b.createdAtMs - a.createdAtMs || a.path.localeCompare(b.path));
+        } else if (currentView === 'name') {
+          list.sort((a, b) => a.name.localeCompare(b.name) || a.path.localeCompare(b.path));
+        } else if (currentView === 'folder') {
+          list.sort((a, b) => a.folder.localeCompare(b.folder) || a.name.localeCompare(b.name));
+        }
+        return list;
+      }
+
+      function createFileNode(file) {
+        const fileDiv = document.createElement('div');
+        fileDiv.className = 'file' + (file.path === activePath ? ' active' : '');
+        fileDiv.dataset.path = file.path;
+        const when = formatCreatedAt(file.createdAt);
+        const status = file.docStatus || 'unknown';
+        const meta = currentView === 'folder' ? when || '' : `${file.folder || '.'}${when ? ` · ${when}` : ''}`;
+        fileDiv.innerHTML = `${file.name}<span class="status-badge ${status}">${status}</span>${
+          meta ? `<span class="path">${meta}</span>` : ''
+        }`;
+        fileDiv.addEventListener('click', () => loadFile(file, fileDiv));
+        return fileDiv;
+      }
+
+      function renderTree() {
+        const files = sortedFiles(filteredFiles());
+        treeView.innerHTML = '';
+        viewHint.textContent = VIEW_HINTS[currentView] || '';
+
+        if (!files.length) {
+          treeView.innerHTML = '<div class="error">No markdown files match this filter.</div>';
+          return;
+        }
+
+        if (currentView === 'folder') {
+          const groups = new Map();
+          for (const file of files) {
+            const key = file.folder || '(root)';
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key).push(file);
+          }
+
+          for (const [folder, groupFiles] of groups) {
+            const group = document.createElement('div');
+            group.className = 'folder-group';
+
+            const title = document.createElement('div');
+            title.className = 'folder-title';
+            title.textContent = `📁 ${folder}`;
+            group.appendChild(title);
+
+            for (const file of groupFiles) {
+              group.appendChild(createFileNode(file));
+            }
+            treeView.appendChild(group);
+          }
+        } else {
+          const section = document.createElement('div');
+          section.className = 'section';
+          for (const file of files) {
+            section.appendChild(createFileNode(file));
+          }
+          treeView.appendChild(section);
+        }
+      }
+
+      async function loadFile(file, element) {
+        if (editing && rawMarkdown !== markdownEditor.value) {
+          const leave = confirm('Discard unsaved edits and open another file?');
+          if (!leave) return;
+        }
+
+        activePath = file.path;
+        activeFile = file;
+        document.querySelectorAll('.file').forEach((el) => el.classList.remove('active'));
+        if (element) element.classList.add('active');
+        docPath.textContent = `_acl-output/${file.path}`;
+        btnEdit.disabled = false;
+        btnApprove.disabled = false;
+        btnReject.disabled = false;
+        setEditing(false);
+
+        markdownBody.innerHTML = '<div class="placeholder">Loading…</div>';
+        try {
+          const res = await fetch(file.url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const text = await res.text();
+          rawMarkdown = text;
+          file.docStatus = parseFrontmatterStatus(text);
+          renderMarkdown(text);
+          renderTree();
+        } catch (err) {
+          rawMarkdown = '';
+          btnEdit.disabled = true;
+          btnApprove.disabled = true;
+          btnReject.disabled = true;
+          markdownBody.innerHTML = `<div class="error">Failed to load ${file.path}: ${err.message}</div>`;
+        }
+      }
+
+      async function saveContent(content, message) {
+        if (!activeFile || saving) return false;
+        saving = true;
+        btnSubmit.disabled = true;
+        btnCancel.disabled = true;
+        btnApprove.disabled = true;
+        btnReject.disabled = true;
+        setStatus('Saving to GitHub…', '');
+
+        try {
+          const res = await fetch('/api/update-doc', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              path: activeFile.path,
+              content,
+              message,
+              secret: editSecret.value || undefined,
+            }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            throw new Error(data.error || `HTTP ${res.status}`);
+          }
+
+          rawMarkdown = content;
+          activeFile.docStatus = parseFrontmatterStatus(content);
+          renderMarkdown(content);
+          renderTree();
+          const commit = data.commit ? ` Commit ${String(data.commit).slice(0, 7)}.` : '';
+          setStatus(`Saved to GitHub.${commit} Redeploy to refresh the static copy on this site.`, 'ok');
+          return true;
+        } catch (err) {
+          setStatus(`Save failed: ${err.message}`, 'err');
+          return false;
+        } finally {
+          saving = false;
+          btnSubmit.disabled = false;
+          btnCancel.disabled = false;
+          btnApprove.disabled = false;
+          btnReject.disabled = false;
+        }
+      }
+
+      async function submitEdits() {
+        const ok = await saveContent(markdownEditor.value, `docs: update ${activeFile.path} via ACL Docs Console`);
+        if (ok) setEditing(false);
+      }
+
+      async function reviewDecision(decision) {
+        if (!activeFile || saving || editing) return;
+        let note = '';
+        if (decision === 'rejected') {
+          note = window.prompt('Rejection note (required — stored in frontmatter review_note):', '');
+          if (note === null) return;
+          note = String(note).trim();
+          if (!note) {
+            setStatus('Reject cancelled — a review note is required.', 'err');
+            return;
+          }
+        }
+
+        let next = setFrontmatterStatus(rawMarkdown, decision);
+        if (note) {
+          if (/^review_note:\s*.+$/m.test(next)) {
+            next = next.replace(/^review_note:\s*.+$/m, `review_note: ${JSON.stringify(note)}`);
+          } else if (next.startsWith('---')) {
+            const end = next.indexOf('\n---', 3);
+            if (end !== -1) {
+              next = next.slice(0, end) + `\nreview_note: ${JSON.stringify(note)}` + next.slice(end);
+            }
+          }
+        }
+
+        const ok = await saveContent(next, `docs: ${decision} ${activeFile.path} via ACL Docs Console`);
+        if (ok) {
+          secretRow.classList.add('visible');
+          setStatus(`Frontmatter status set to ${decision}. Author should pull before continuing ACL skills.`, 'ok');
+        }
+      }
+
+      function setView(view) {
+        currentView = view;
+        document.querySelectorAll('.seg-btn').forEach((btn) => {
+          btn.classList.toggle('active', btn.dataset.view === view);
+        });
+        renderTree();
+      }
+
+      btnEdit.addEventListener('click', () => setEditing(true));
+      btnCancel.addEventListener('click', () => {
+        markdownEditor.value = rawMarkdown;
+        setEditing(false);
+      });
+      btnSubmit.addEventListener('click', () => submitEdits());
+      btnApprove.addEventListener('click', () => reviewDecision('approved'));
+      btnReject.addEventListener('click', () => reviewDecision('rejected'));
+
+      document.querySelectorAll('.seg-btn').forEach((btn) => {
+        btn.addEventListener('click', () => setView(btn.dataset.view));
+      });
+
+      folderFilter.addEventListener('change', () => {
+        currentFolder = folderFilter.value;
+        renderTree();
+      });
+
+      statusFilter.addEventListener('change', () => {
+        currentStatus = statusFilter.value;
+        renderTree();
+      });
+
+      async function hydrateStatuses(files) {
+        await Promise.all(
+          files.map(async (file) => {
+            try {
+              const res = await fetch(file.url);
+              if (!res.ok) {
+                file.docStatus = 'unknown';
+                return;
+              }
+              const text = await res.text();
+              file.docStatus = parseFrontmatterStatus(text);
+            } catch {
+              file.docStatus = 'unknown';
+            }
+          }),
+        );
+      }
+
+      async function init() {
+        try {
+          const res = await fetch('/_acl-output/manifest.json');
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          allFiles = data.files || [];
+
+          if (!allFiles.length) {
+            treeView.innerHTML = '<div class="error">No markdown files found in <code>_acl-output</code>.</div>';
+            markdownBody.innerHTML = '<div class="placeholder">Nothing to show yet.</div>';
+            return;
+          }
+
+          populateFolderFilter(allFiles);
+          await hydrateStatuses(allFiles);
+          renderTree();
+
+          const first = sortedFiles(filteredFiles())[0];
+          if (first) {
+            const el = treeView.querySelector(`[data-path="${CSS.escape(first.path)}"]`);
+            loadFile(first, el);
+          }
+        } catch (err) {
+          treeView.innerHTML = `<div class="error">Could not load manifest.json.<br><br>${err.message}</div>`;
+          markdownBody.innerHTML = '<div class="placeholder">Ensure _acl-output/manifest.json exists (Vite plugin or static deploy).</div>';
+        }
+      }
+
+      init();
+    </script>
+  </body>
+</html>

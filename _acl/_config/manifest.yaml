@@ -1,0 +1,21 @@
+installation:
+  version: 6.11.18
+  installDate: 2026-09-04T06:31:36.688Z
+  lastUpdated: 2026-09-10T05:20:08.605Z
+modules:
+  - name: core
+    version: 6.11.18
+    installDate: 2026-09-04T06:31:36.547Z
+    lastUpdated: 2026-09-10T05:20:08.603Z
+    source: built-in
+    npmPackage: null
+    repoUrl: null
+  - name: acl
+    version: 6.11.18
+    installDate: 2026-09-04T06:31:36.379Z
+    lastUpdated: 2026-09-10T05:20:08.605Z
+    source: built-in
+    npmPackage: null
+    repoUrl: null
+ides:
+  - cursor
