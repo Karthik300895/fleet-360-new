@@ -1,0 +1,7 @@
+.card {
+  background: var(--color-background-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-text-primary) 8%, transparent);
+  padding: var(--spacing-card-padding);
+}

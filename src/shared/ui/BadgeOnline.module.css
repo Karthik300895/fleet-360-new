@@ -1,0 +1,21 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-family);
+  font-size: var(--font-label-size);
+  font-weight: var(--font-label-weight);
+  line-height: var(--font-label-line-height);
+  letter-spacing: var(--font-label-letter-spacing);
+}
+
+.online {
+  background: var(--color-status-online-bg);
+  color: var(--color-status-online);
+}
+
+.offline {
+  background: var(--color-background-page);
+  color: var(--color-status-offline);
+}

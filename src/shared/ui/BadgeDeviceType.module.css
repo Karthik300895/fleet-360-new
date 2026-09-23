@@ -1,0 +1,26 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-family);
+  font-size: var(--font-label-size);
+  font-weight: var(--font-label-weight);
+  line-height: var(--font-label-line-height);
+  letter-spacing: var(--font-label-letter-spacing);
+}
+
+.cooler {
+  background: var(--color-device-cooler-bg);
+  color: var(--color-device-cooler);
+}
+
+.air {
+  background: color-mix(in srgb, var(--color-device-air) 15%, var(--color-background-card));
+  color: var(--color-device-air);
+}
+
+.water {
+  background: color-mix(in srgb, var(--color-device-water) 15%, var(--color-background-card));
+  color: var(--color-device-water);
+}
