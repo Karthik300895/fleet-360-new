@@ -13,11 +13,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build and Restart Application
+      - name: Install dependencies and Build
         run: |
-          cd /home/velocityone/fleet-360-new
-          git checkout -- public/acl-markdown-files.json || true
-          git pull origin main
           npm install
           npm run build
+
+      - name: Copy build to PM2 Directory and Restart
+        run: |
+          mkdir -p /home/velocityone/fleet-360-new/dist
+          rsync -av --delete dist/ /home/velocityone/fleet-360-new/dist/
           pm2 restart fleet-360
