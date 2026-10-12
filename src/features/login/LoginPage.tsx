@@ -1,7 +1,7 @@
 export function LoginPage() {
   return (
     <main>
-      <h1>Login — Coming soon</h1>
+      <h1>Login — Coming soon updated</h1>
     </main>
   )
 }
