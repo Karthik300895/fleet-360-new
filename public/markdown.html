@@ -2519,9 +2519,11 @@
             body: JSON.stringify(bodyPayload),
           });
           const resData = await resp.json().catch(() => ({}));
-          if (resp.ok && resData.success !== false) {
+            if (resp.ok && resData.success !== false) {
             lastSaveTime = Date.now();
-            if (resData && resData.repo) {
+            if (resData && resData.mode === 'local-git') {
+              setSyncStatus('Saved on server & pushed to GitHub (deploy will run) ✔', 'green');
+            } else if (resData && resData.repo) {
               setSyncStatus(`Committed to GitHub (${resData.repo}@${resData.branch || 'main'}) ✔`, 'green');
             } else {
               setSyncStatus('Saved locally to disk, VS Code & Github ✔', 'green');

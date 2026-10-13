@@ -1,6 +1,8 @@
-// ACL-ADLC Markdown Studio Serverless Save Endpoint (Vercel + GitHub REST API)
+// ACL-ADLC Markdown Studio Serverless Save Endpoint (Vercel + GitHub REST API + self-hosted git)
 import fs from 'node:fs';
 import path from 'node:path';
+import { gitCommitAndPush, isLocalServerMode, shouldAutoGitPush } from './lib/local-git-commit.js';
+import { resolveMarkdownRepoPath } from './lib/resolve-markdown-repo-path.js';
 
 export default async function handler(req, res) {
   // CORS Headers
@@ -51,46 +53,8 @@ export default async function handler(req, res) {
       return;
     }
 
-    // Path normalization: canonical phase structure inside _acl-output/
-    let cleanFolder = (folderPath || '').replaceAll('\\', '/').trim();
-    cleanFolder = cleanFolder.replace(/^(_acl-output|_acl_output|acl-output)\/?/i, '');
-    cleanFolder = cleanFolder.replace(/^\/+/, '').replace(/\/+$/, '');
-    const cleanFilename = filename.replace(/^\/+/, '').trim();
-    const lowerName = cleanFilename.toLowerCase();
-
-    if (lowerName === 'project-context.md') {
-      cleanFolder = '';
-    } else if (!cleanFolder || cleanFolder === 'root' || cleanFolder === '.') {
-      switch (lowerName) {
-        case 'brief.md': {
-          cleanFolder = '1-analysis/acl-product-brief';
-          break;
-        }
-        case 'prd.md': {
-          cleanFolder = '2-plan-workflows/acl-prd';
-          break;
-        }
-        case 'architecture-spine.md':
-        case 'architecture.md': {
-          cleanFolder = '3-solutioning/acl-architecture';
-          break;
-        }
-        case 'epics.md': {
-          cleanFolder = '3-solutioning/acl-create-epics-and-stories';
-          break;
-        }
-        default: {
-          if (/^story-\d+/i.test(lowerName) || /^spec-/i.test(lowerName)) {
-            cleanFolder = '4-implementation';
-          } else {
-            cleanFolder = '';
-          }
-          break;
-        }
-      }
-    }
-
-    const repoFilePath = cleanFolder ? `_acl-output/${cleanFolder}/${cleanFilename}` : `_acl-output/${cleanFilename}`;
+    const { repoFilePath, cleanFilename } = resolveMarkdownRepoPath(folderPath, filename);
+    const localServerMode = isLocalServerMode();
 
     // Detect GitHub Configuration: Check headers, body, or environment variables
     const rawHeaderAuth = req.headers['authorization'] || '';
@@ -137,6 +101,56 @@ export default async function handler(req, res) {
     if (!owner) owner = 'karthick1827';
     if (!repo) repo = 'jira-clone';
 
+    const cleanStatus = (status || '').trim();
+    const commitMsg = cleanStatus
+      ? `docs(review): update ${cleanFilename} status to [${cleanStatus}] via Markdown Studio`
+      : `docs(${cleanFilename}): update content via Markdown Studio`;
+
+    async function saveToLocalDiskWithOptionalGit() {
+      const localTarget = path.join(process.cwd(), repoFilePath);
+      fs.mkdirSync(path.dirname(localTarget), { recursive: true });
+      fs.writeFileSync(localTarget, content, 'utf8');
+
+      let gitResult = null;
+      if (shouldAutoGitPush(payload)) {
+        try {
+          gitResult = await gitCommitAndPush(process.cwd(), repoFilePath, commitMsg);
+        } catch (gitErr) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(
+            JSON.stringify({
+              success: false,
+              mode: 'local-disk',
+              path: repoFilePath,
+              error: `File saved on disk but git push failed: ${gitErr.message}`,
+              hint: 'Ensure this process runs inside the git clone and git remote credentials are configured on the server.',
+            }),
+          );
+          return;
+        }
+      }
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(
+        JSON.stringify({
+          success: true,
+          mode: gitResult?.pushed ? 'local-git' : 'local-disk',
+          path: repoFilePath,
+          status: status,
+          git: gitResult,
+          message: gitResult?.pushed
+            ? `Saved ${cleanFilename} and pushed to origin (deploy workflow will run on push).`
+            : `Saved ${cleanFilename} on server disk.`,
+        }),
+      );
+    }
+
+    // Self-hosted: write into the checkout and push with server git credentials
+    if (localServerMode) {
+      await saveToLocalDiskWithOptionalGit();
+      return;
+    }
+
     // 1. If GitHub Token is configured: Commit to GitHub via REST API
     if (token) {
       const authHeader =
@@ -180,12 +194,6 @@ export default async function handler(req, res) {
       } catch {
         // Network or fetch error
       }
-
-      // Prepare commit message adhering to Conventional Commits
-      const cleanStatus = (status || '').trim();
-      const commitMsg = cleanStatus
-        ? `docs(review): update ${cleanFilename} status to [${cleanStatus}] via Markdown Studio`
-        : `docs(${cleanFilename}): update content via Markdown Studio`;
 
       const putUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${repoFilePath}`;
       const putRes = await fetch(putUrl, {
@@ -244,29 +252,15 @@ export default async function handler(req, res) {
 
     // 2. Fallback: Save to local filesystem if no GitHub Token configured
     try {
-      const localTarget = path.join(process.cwd(), repoFilePath);
-      fs.mkdirSync(path.dirname(localTarget), { recursive: true });
-      fs.writeFileSync(localTarget, content, 'utf8');
-
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(
-        JSON.stringify({
-          success: true,
-          mode: 'local-disk',
-          path: repoFilePath,
-          status: status,
-          warning:
-            'Saved to local disk only. To enable cloud commits on Vercel, configure GITHUB_TOKEN in Vercel environment variables or enter it in Markdown Studio Cloud Sync settings.',
-        }),
-      );
-    } catch {
+      await saveToLocalDiskWithOptionalGit();
+    } catch (diskErr) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(
         JSON.stringify({
           success: false,
-          error:
-            'GITHUB_TOKEN is missing. Click "🐙 Cloud Sync" in the top header to enter your token, or add GITHUB_TOKEN in Vercel settings.',
-          hint: 'Click "🐙 Cloud Sync" in the top bar to paste your GitHub token.',
+          error: diskErr.message || 'Failed to write file on server disk.',
+          hint:
+            'Configure GITHUB_TOKEN for cloud commits, or run with ACL_LOCAL_SERVER=1 on your self-hosted checkout.',
         }),
       );
     }

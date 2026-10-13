@@ -1,6 +1,7 @@
 // ACL-ADLC Markdown Studio Serverless List Files Endpoint (Vercel + GitHub REST API)
 import fs from 'node:fs';
 import path from 'node:path';
+import { isLocalServerMode } from './lib/local-git-commit.js';
 
 const EXCLUDED_FILENAMES = new Set([
   'skill.md',
@@ -169,8 +170,10 @@ export default async function handler(req, res) {
     if (!owner) owner = 'karthick1827';
     if (!repo) repo = 'jira-clone';
 
-    // 1. Fetch from GitHub API if owner and repo are known
-    if (owner && repo) {
+    const localServerMode = isLocalServerMode();
+
+    // 1. Fetch from GitHub API if owner and repo are known (skip on self-hosted checkout)
+    if (!localServerMode && owner && repo) {
       try {
         const headers = {
           Accept: 'application/vnd.github.v3+json',

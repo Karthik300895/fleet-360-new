@@ -22,4 +22,6 @@ jobs:
         run: |
           mkdir -p /home/velocityone/fleet-360-new/dist
           rsync -av --delete dist/ /home/velocityone/fleet-360-new/dist/
+          # PM2 should run: ACL_LOCAL_SERVER=1 ACL_LOCAL_GIT_AUTO_PUSH=1 npm run start:local
+          # from /home/velocityone/fleet-360-new (full git clone), not static-only hosting.
           pm2 restart fleet-360
