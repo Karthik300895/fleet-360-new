@@ -16,6 +16,9 @@ module.exports = {
         ACL_LOCAL_SERVER: '1',
         ACL_LOCAL_GIT_AUTO_PUSH: '1',
         ACL_REPO_ROOT: appRoot,
+        // Set these on the server if git commit fails (required for git commit -m "...")
+        ACL_GIT_USER_NAME: 'VelocityONE Markdown Studio',
+        ACL_GIT_USER_EMAIL: 'velocityone@localhost',
       },
     },
   ],

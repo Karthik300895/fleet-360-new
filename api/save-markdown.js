@@ -116,14 +116,19 @@ export default async function handler(req, res) {
         try {
           gitResult = await gitCommitAndPush(process.cwd(), repoFilePath, commitMsg);
         } catch (gitErr) {
-          res.writeHead(500, { 'Content-Type': 'application/json' });
+          const gitError = gitErr instanceof Error ? gitErr.message : String(gitErr);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(
             JSON.stringify({
-              success: false,
+              success: true,
               mode: 'local-disk',
               path: repoFilePath,
-              error: `File saved on disk but git push failed: ${gitErr.message}`,
-              hint: 'Ensure this process runs inside the git clone and git remote credentials are configured on the server.',
+              status: status,
+              gitPushed: false,
+              gitError,
+              warning: `Saved on server disk, but git commit/push failed: ${gitError}`,
+              hint:
+                'On Ubuntu: git config user.email & user.name, verify git push works in ~/fleet-360-new, or set ACL_GIT_USER_EMAIL in PM2 env.',
             }),
           );
           return;
