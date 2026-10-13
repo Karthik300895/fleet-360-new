@@ -153,12 +153,35 @@ function needsRebaseBeforePush(detail) {
   return /rejected|fetch first|non-fast-forward|failed to push/i.test(detail);
 }
 
-async function gitPullRebase(cwd, env, branch, authRemote) {
-  if (authRemote) {
-    await execFileAsync('git', ['pull', '--rebase', authRemote, branch], { cwd, env });
-    return;
+async function gitStashIfDirty(cwd, env) {
+  try {
+    const { stdout } = await execFileAsync('git', ['status', '--porcelain'], { cwd, env });
+    if (!stdout.trim()) return false;
+    await execFileAsync('git', ['stash', 'push', '-u', '-m', 'acl-markdown-studio-auto-stash'], { cwd, env });
+    return true;
+  } catch {
+    return false;
   }
-  await execFileAsync('git', ['pull', '--rebase', 'origin', branch], { cwd, env });
+}
+
+async function gitPullRebase(cwd, env, branch, authRemote) {
+  const hadStash = await gitStashIfDirty(cwd, env);
+
+  try {
+    if (authRemote) {
+      await execFileAsync('git', ['pull', '--rebase', authRemote, branch], { cwd, env });
+    } else {
+      await execFileAsync('git', ['pull', '--rebase', 'origin', branch], { cwd, env });
+    }
+  } finally {
+    if (hadStash) {
+      try {
+        await execFileAsync('git', ['stash', 'pop'], { cwd, env });
+      } catch {
+        // Conflicts after pop — leave stash entry for manual resolve on server
+      }
+    }
+  }
 }
 
 async function gitPushWithRebase(cwd, env) {
