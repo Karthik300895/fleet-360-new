@@ -1,7 +1,12 @@
 // ACL-ADLC Markdown Studio Serverless Save Endpoint (Vercel + GitHub REST API + self-hosted git)
 import fs from 'node:fs';
 import path from 'node:path';
-import { gitCommitAndPush, isLocalServerMode, shouldAutoGitPush } from './lib/local-git-commit.js';
+import {
+  gitCommitAndPush,
+  isLocalServerMode,
+  sanitizeGitErrorForClient,
+  shouldAutoGitPush,
+} from './lib/local-git-commit.js';
 import { resolveMarkdownRepoPath } from './lib/resolve-markdown-repo-path.js';
 
 export default async function handler(req, res) {
@@ -116,7 +121,9 @@ export default async function handler(req, res) {
         try {
           gitResult = await gitCommitAndPush(process.cwd(), repoFilePath, commitMsg);
         } catch (gitErr) {
-          const gitError = gitErr instanceof Error ? gitErr.message : String(gitErr);
+          const gitError = sanitizeGitErrorForClient(
+            gitErr instanceof Error ? gitErr.message : String(gitErr),
+          );
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(
             JSON.stringify({
@@ -140,6 +147,7 @@ export default async function handler(req, res) {
         JSON.stringify({
           success: true,
           mode: gitResult?.pushed ? 'local-git' : 'local-disk',
+          gitPushed: Boolean(gitResult?.pushed),
           path: repoFilePath,
           status: status,
           git: gitResult,

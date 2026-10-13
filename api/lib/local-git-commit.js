@@ -65,6 +65,15 @@ async function assertGitRepository(cwd) {
   }
 }
 
+export function sanitizeGitErrorForClient(message) {
+  return String(message)
+    .replace(/https:\/\/(?:[^@\s/]+)@github\.com/gi, 'https://***@github.com')
+    .replace(/(x-access-token:|oauth2:)[^@\s]+@/gi, '$1***@')
+    .replace(/\bghp_[A-Za-z0-9]+\b/g, 'ghp_***')
+    .replace(/\bgithub_pat_[A-Za-z0-9_]+\b/g, 'github_pat_***')
+    .replace(/\bglpat-[A-Za-z0-9]+\b/g, 'glpat-***');
+}
+
 function resolveGithubPushToken() {
   return (
     process.env.ACL_GITHUB_TOKEN ||
@@ -73,6 +82,15 @@ function resolveGithubPushToken() {
     process.env.GITHUB_PAT ||
     ''
   ).trim();
+}
+
+function assertGithubPushToken(token) {
+  if (!token) return;
+  if (token.startsWith('glpat-')) {
+    throw new Error(
+      'ACL_GITHUB_TOKEN looks like a GitLab token (glpat-…). Use a GitHub token from github.com → Settings → Developer settings → Personal access tokens (classic, ghp_…) or fine-grained (github_pat_…), with repo write access to Karthik300895/fleet-360-new.',
+    );
+  }
 }
 
 function parseGithubOwnerRepo(remoteUrl) {
@@ -89,7 +107,9 @@ function parseGithubOwnerRepo(remoteUrl) {
 }
 
 function authenticatedGithubRemoteUrl(owner, repo, token) {
-  return `https://x-access-token:${encodeURIComponent(token)}@github.com/${owner}/${repo}.git`;
+  assertGithubPushToken(token);
+  // GitHub HTTPS PAT (classic or fine-grained)
+  return `https://oauth2:${encodeURIComponent(token)}@github.com/${owner}/${repo}.git`;
 }
 
 async function getOriginRemote(cwd) {
@@ -117,6 +137,30 @@ function isAuthPushError(detail) {
   );
 }
 
+async function countUnpushedCommits(cwd, env, branch) {
+  try {
+    const { stdout } = await execFileAsync('git', ['rev-list', '--count', `origin/${branch}..HEAD`], {
+      cwd,
+      env,
+    });
+    return Number.parseInt(stdout.trim(), 10) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function needsRebaseBeforePush(detail) {
+  return /rejected|fetch first|non-fast-forward|failed to push/i.test(detail);
+}
+
+async function gitPullRebase(cwd, env, branch, authRemote) {
+  if (authRemote) {
+    await execFileAsync('git', ['pull', '--rebase', authRemote, branch], { cwd, env });
+    return;
+  }
+  await execFileAsync('git', ['pull', '--rebase', 'origin', branch], { cwd, env });
+}
+
 async function gitPushWithRebase(cwd, env) {
   const branch = await getCurrentBranch(cwd, env);
   const token = resolveGithubPushToken();
@@ -124,40 +168,49 @@ async function gitPushWithRebase(cwd, env) {
   const gh = parseGithubOwnerRepo(origin);
   const authRemote = token && gh ? authenticatedGithubRemoteUrl(gh.owner, gh.repo, token) : null;
 
-  const pushDefault = async () => runGitPush(cwd, env, ['push', 'origin', `HEAD:${branch}`]);
-  const pushAuth = async () => {
-    if (!authRemote) {
-      throw new Error(
-        'Git push needs credentials. Set ACL_GITHUB_TOKEN in PM2 (GitHub PAT with repo scope), or switch origin to SSH: git remote set-url origin git@github.com:OWNER/REPO.git',
-      );
+  const pushOnce = async () => {
+    if (authRemote) {
+      return runGitPush(cwd, env, ['push', authRemote, `HEAD:${branch}`]);
     }
-    return runGitPush(cwd, env, ['push', authRemote, `HEAD:${branch}`]);
+    try {
+      return await runGitPush(cwd, env, ['push', 'origin', `HEAD:${branch}`]);
+    } catch (err) {
+      const detail = gitStderr(err);
+      if (isAuthPushError(detail)) {
+        throw new Error(
+          'Git push needs ACL_GITHUB_TOKEN in ~/fleet-360-new/.env (GitHub PAT with repo write), or SSH origin.',
+        );
+      }
+      throw err;
+    }
   };
 
   try {
-    const out = await pushDefault();
-    return { pushed: true, pushOutput: out };
+    const out = await pushOnce();
+    return { pushed: true, pushOutput: out, usedTokenAuth: Boolean(authRemote) };
   } catch (err) {
     const detail = gitStderr(err);
 
-    if (isAuthPushError(detail)) {
-      const out = await pushAuth();
-      return { pushed: true, pushOutput: out, usedTokenAuth: true };
+    if (!needsRebaseBeforePush(detail)) {
+      throw new Error(sanitizeGitErrorForClient(detail || 'git push failed'));
     }
 
-    if (!/rejected|fetch first|non-fast-forward|failed to push/i.test(detail)) {
-      throw new Error(detail || 'git push failed');
+    try {
+      await gitPullRebase(cwd, env, branch, authRemote);
+      const out = await pushOnce();
+      return {
+        pushed: true,
+        rebased: true,
+        pushOutput: out,
+        usedTokenAuth: Boolean(authRemote),
+      };
+    } catch (rebaseErr) {
+      throw new Error(
+        sanitizeGitErrorForClient(
+          `${gitStderr(rebaseErr)}\n\nHint: on the server run: cd ~/fleet-360-new && git pull --rebase origin main && git push`,
+        ),
+      );
     }
-
-    if (authRemote) {
-      await execFileAsync('git', ['pull', '--rebase', authRemote, branch], { cwd, env });
-      const out = await runGitPush(cwd, env, ['push', authRemote, `HEAD:${branch}`]);
-      return { pushed: true, rebased: true, pushOutput: out, usedTokenAuth: true };
-    }
-
-    await execFileAsync('git', ['pull', '--rebase', 'origin', branch], { cwd, env });
-    const out = await pushDefault();
-    return { pushed: true, rebased: true, pushOutput: out };
   }
 }
 
@@ -205,6 +258,17 @@ export async function gitCommitAndPush(repoRoot, repoFilePath, commitMessage) {
       throw new Error(`File is gitignored and was not staged: ${ignoreInfo}`);
     }
 
+    const branch = await getCurrentBranch(cwd, gitEnv);
+    const unpushed = await countUnpushedCommits(cwd, gitEnv, branch);
+    if (unpushed > 0) {
+      const pushResult = await gitPushWithRebase(cwd, gitEnv);
+      return {
+        ...pushResult,
+        skippedCommit: true,
+        message: `No new edits for ${repoFilePath}; pushed ${unpushed} existing local commit(s) to origin.`,
+      };
+    }
+
     return {
       pushed: false,
       skippedCommit: true,
@@ -234,6 +298,16 @@ export async function gitCommitAndPush(repoRoot, repoFilePath, commitMessage) {
   } catch (err) {
     const detail = gitStderr(err);
     if (/nothing to commit|no changes added/i.test(detail)) {
+      const branch = await getCurrentBranch(cwd, gitEnv);
+      const unpushed = await countUnpushedCommits(cwd, gitEnv, branch);
+      if (unpushed > 0) {
+        const pushResult = await gitPushWithRebase(cwd, gitEnv);
+        return {
+          ...pushResult,
+          skippedCommit: true,
+          message: `No new changes; pushed ${unpushed} existing local commit(s).`,
+        };
+      }
       return { pushed: false, skippedCommit: true, message: 'No git changes to commit (content unchanged).' };
     }
 
@@ -246,7 +320,9 @@ export async function gitCommitAndPush(repoRoot, repoFilePath, commitMessage) {
     }
 
     throw new Error(
-      [detail, status ? `git status:\n${status}` : ''].filter(Boolean).join('\n\n') || 'git commit failed',
+      sanitizeGitErrorForClient(
+        [detail, status ? `git status:\n${status}` : ''].filter(Boolean).join('\n\n') || 'git commit failed',
+      ),
     );
   } finally {
     try {
