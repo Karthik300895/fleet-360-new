@@ -1,4 +1,4 @@
-const path = require('node:path');
+const path = require("node:path");
 
 const appRoot = __dirname;
 
@@ -6,19 +6,19 @@ const appRoot = __dirname;
 module.exports = {
   apps: [
     {
-      name: 'fleet-360',
+      name: "fleet-360",
       cwd: appRoot,
-      script: path.join(appRoot, 'scripts/serve-with-markdown-api.mjs'),
-      interpreter: 'node',
+      script: path.join(appRoot, "scripts/serve-with-markdown-api.mjs"),
+      interpreter: "node",
       env: {
-        NODE_ENV: 'production',
-        PORT: '3000',
-        ACL_LOCAL_SERVER: '1',
-        ACL_LOCAL_GIT_AUTO_PUSH: '1',
+        NODE_ENV: "production",
+        PORT: "3000",
+        ACL_LOCAL_SERVER: "1",
+        ACL_LOCAL_GIT_AUTO_PUSH: "1",
         ACL_REPO_ROOT: appRoot,
         // Set these on the server if git commit fails (required for git commit -m "...")
-        ACL_GIT_USER_NAME: 'VelocityONE Markdown Studio',
-        ACL_GIT_USER_EMAIL: 'velocityone@localhost',
+        ACL_GIT_USER_NAME: "karthik300895",
+        ACL_GIT_USER_EMAIL: "karthik.r@acldigital.com",
       },
     },
   ],
