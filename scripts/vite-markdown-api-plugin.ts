@@ -1,6 +1,6 @@
 import path from 'node:path'
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import type { Plugin, ViteDevServer } from 'vite'
 
 const projectRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)))
@@ -20,8 +20,8 @@ export default function aclMarkdownSaverPlugin(): Plugin {
   async function loadHandlers(): Promise<void> {
     if (!listHandler || !saveHandler) {
       const [listMod, saveMod] = await Promise.all([
-        import(path.join(projectRoot, 'api/list-markdown-files.js')),
-        import(path.join(projectRoot, 'api/save-markdown.js')),
+        import(pathToFileURL(path.join(projectRoot, 'api/list-markdown-files.js')).href),
+        import(pathToFileURL(path.join(projectRoot, 'api/save-markdown.js')).href),
       ])
       listHandler = listMod.default as ApiHandler
       saveHandler = saveMod.default as ApiHandler

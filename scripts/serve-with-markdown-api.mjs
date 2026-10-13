@@ -10,8 +10,10 @@
  *   ACL_LOCAL_SERVER=1 — write files on disk instead of GitHub API when possible
  *   ACL_LOCAL_GIT_AUTO_PUSH=1 — git add / commit / push after each save
  */
+import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import {
   createApiRequest,
   projectRoot,
@@ -28,8 +30,12 @@ const repoRoot = process.env.ACL_REPO_ROOT
 const distRoot = path.join(repoRoot, 'dist');
 const port = Number(process.env.PORT || 3000);
 
-const saveHandler = (await import(path.join(projectRoot, 'api/save-markdown.js'))).default;
-const listHandler = (await import(path.join(projectRoot, 'api/list-markdown-files.js'))).default;
+const saveHandler = (
+  await import(pathToFileURL(path.join(projectRoot, 'api/save-markdown.js')).href)
+).default;
+const listHandler = (
+  await import(pathToFileURL(path.join(projectRoot, 'api/list-markdown-files.js')).href)
+).default;
 
 process.chdir(repoRoot);
 
@@ -60,6 +66,20 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (pathname === '/api/health' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(
+      JSON.stringify({
+        ok: true,
+        markdownApi: true,
+        repoRoot,
+        distRoot,
+        localGitAutoPush: process.env.ACL_LOCAL_GIT_AUTO_PUSH,
+      }),
+    );
+    return;
+  }
+
   if (pathname === '/api/list-markdown-files' && req.method === 'GET') {
     try {
       const apiReq = createApiRequest(req, pathname, url.searchParams.toString());
@@ -71,12 +91,27 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (pathname === '/markdown' || pathname === '/markdown/') {
+    if (tryServeStatic(distRoot, '/markdown.html', res)) {
+      return;
+    }
+  }
+
+  if (pathname === '/package.json') {
+    const pkgPath = path.join(repoRoot, 'package.json');
+    if (fs.existsSync(pkgPath)) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(fs.readFileSync(pkgPath, 'utf8'));
+      return;
+    }
+  }
+
   if (tryServeStatic(distRoot, pathname, res)) {
     return;
   }
 
-  res.writeHead(404);
-  res.end('Not found');
+  res.writeHead(404, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ error: 'Not found', path: pathname }));
 });
 
 server.listen(port, '0.0.0.0', () => {

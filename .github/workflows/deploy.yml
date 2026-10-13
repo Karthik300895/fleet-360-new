@@ -18,10 +18,21 @@ jobs:
           npm install
           npm run build
 
-      - name: Copy build to PM2 Directory and Restart
+      - name: Sync to runtime directory and restart PM2 (API + static)
         run: |
-          mkdir -p /home/velocityone/fleet-360-new/dist
-          rsync -av --delete dist/ /home/velocityone/fleet-360-new/dist/
-          # PM2 should run: ACL_LOCAL_SERVER=1 ACL_LOCAL_GIT_AUTO_PUSH=1 npm run start:local
-          # from /home/velocityone/fleet-360-new (full git clone), not static-only hosting.
-          pm2 restart fleet-360
+          RUNTIME=/home/velocityone/fleet-360-new
+          mkdir -p "$RUNTIME/dist" "$RUNTIME/api" "$RUNTIME/scripts"
+
+          rsync -av --delete dist/ "$RUNTIME/dist/"
+          rsync -av --delete api/ "$RUNTIME/api/"
+          rsync -av scripts/serve-with-markdown-api.mjs scripts/acl-api-adapter.mjs "$RUNTIME/scripts/"
+          rsync -av ecosystem.config.cjs package.json "$RUNTIME/"
+
+          cd "$RUNTIME"
+          if command -v pm2 >/dev/null 2>&1; then
+            pm2 startOrReload ecosystem.config.cjs --update-env || pm2 start ecosystem.config.cjs
+            pm2 save
+          else
+            echo "pm2 not found — start manually: cd $RUNTIME && npm run start:local"
+            exit 1
+          fi
