@@ -65,21 +65,99 @@ async function assertGitRepository(cwd) {
   }
 }
 
-async function gitPushWithRebase(cwd, env) {
+function resolveGithubPushToken() {
+  return (
+    process.env.ACL_GITHUB_TOKEN ||
+    process.env.GITHUB_TOKEN ||
+    process.env.GH_TOKEN ||
+    process.env.GITHUB_PAT ||
+    ''
+  ).trim();
+}
+
+function parseGithubOwnerRepo(remoteUrl) {
+  const url = (remoteUrl || '').trim();
+  const sshMatch = url.match(/git@github\.com:([^/]+)\/(.+?)(?:\.git)?$/i);
+  if (sshMatch) {
+    return { owner: sshMatch[1], repo: sshMatch[2].replace(/\.git$/, '') };
+  }
+  const httpsMatch = url.match(/github\.com[/:]([^/]+)\/(.+?)(?:\.git)?$/i);
+  if (httpsMatch) {
+    return { owner: httpsMatch[1], repo: httpsMatch[2].replace(/\.git$/, '') };
+  }
+  return null;
+}
+
+function authenticatedGithubRemoteUrl(owner, repo, token) {
+  return `https://x-access-token:${encodeURIComponent(token)}@github.com/${owner}/${repo}.git`;
+}
+
+async function getOriginRemote(cwd) {
   try {
-    const { stdout } = await execFileAsync('git', ['push'], { cwd, env });
-    return { pushed: true, pushOutput: (stdout || '').trim() };
+    const { stdout } = await execFileAsync('git', ['remote', 'get-url', 'origin'], { cwd });
+    return stdout.trim();
+  } catch {
+    return '';
+  }
+}
+
+async function getCurrentBranch(cwd, env) {
+  const { stdout } = await execFileAsync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd, env });
+  return stdout.trim() || 'main';
+}
+
+async function runGitPush(cwd, env, pushArgs) {
+  const { stdout } = await execFileAsync('git', pushArgs, { cwd, env });
+  return (stdout || '').trim();
+}
+
+function isAuthPushError(detail) {
+  return /could not read Username|terminal prompts disabled|authentication failed|invalid credentials|403|401/i.test(
+    detail,
+  );
+}
+
+async function gitPushWithRebase(cwd, env) {
+  const branch = await getCurrentBranch(cwd, env);
+  const token = resolveGithubPushToken();
+  const origin = await getOriginRemote(cwd);
+  const gh = parseGithubOwnerRepo(origin);
+  const authRemote = token && gh ? authenticatedGithubRemoteUrl(gh.owner, gh.repo, token) : null;
+
+  const pushDefault = async () => runGitPush(cwd, env, ['push', 'origin', `HEAD:${branch}`]);
+  const pushAuth = async () => {
+    if (!authRemote) {
+      throw new Error(
+        'Git push needs credentials. Set ACL_GITHUB_TOKEN in PM2 (GitHub PAT with repo scope), or switch origin to SSH: git remote set-url origin git@github.com:OWNER/REPO.git',
+      );
+    }
+    return runGitPush(cwd, env, ['push', authRemote, `HEAD:${branch}`]);
+  };
+
+  try {
+    const out = await pushDefault();
+    return { pushed: true, pushOutput: out };
   } catch (err) {
     const detail = gitStderr(err);
+
+    if (isAuthPushError(detail)) {
+      const out = await pushAuth();
+      return { pushed: true, pushOutput: out, usedTokenAuth: true };
+    }
+
     if (!/rejected|fetch first|non-fast-forward|failed to push/i.test(detail)) {
       throw new Error(detail || 'git push failed');
     }
 
-    const branch =
-      (process.env.ACL_GIT_BRANCH || process.env.GITHUB_BRANCH || 'main').trim() || 'main';
+    if (authRemote) {
+      await execFileAsync('git', ['pull', '--rebase', authRemote, branch], { cwd, env });
+      const out = await runGitPush(cwd, env, ['push', authRemote, `HEAD:${branch}`]);
+      return { pushed: true, rebased: true, pushOutput: out, usedTokenAuth: true };
+    }
+
     await execFileAsync('git', ['pull', '--rebase', 'origin', branch], { cwd, env });
-    const { stdout } = await execFileAsync('git', ['push'], { cwd, env });
-    return { pushed: true, rebased: true, pushOutput: (stdout || '').trim() };
+    const out = await pushDefault();
+    return { pushed: true, rebased: true, pushOutput: out };
   }
 }
 

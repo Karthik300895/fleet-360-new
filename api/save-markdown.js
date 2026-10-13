@@ -128,7 +128,7 @@ export default async function handler(req, res) {
               gitError,
               warning: `Saved on server disk, but git commit/push failed: ${gitError}`,
               hint:
-                'On Ubuntu: git config user.email & user.name, verify git push works in ~/fleet-360-new, or set ACL_GIT_USER_EMAIL in PM2 env.',
+                'For HTTPS origin: add ACL_GITHUB_TOKEN (PAT with repo scope) to PM2/.env, or use SSH: git remote set-url origin git@github.com:OWNER/REPO.git',
             }),
           );
           return;

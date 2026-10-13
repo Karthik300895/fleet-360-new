@@ -24,9 +24,31 @@ import {
 process.env.ACL_LOCAL_SERVER = process.env.ACL_LOCAL_SERVER || '1';
 process.env.ACL_LOCAL_GIT_AUTO_PUSH = process.env.ACL_LOCAL_GIT_AUTO_PUSH || '1';
 
+function loadEnvFile(filePath) {
+  if (!fs.existsSync(filePath)) return;
+  const text = fs.readFileSync(filePath, 'utf8');
+  for (const line of text.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eq = trimmed.indexOf('=');
+    if (eq <= 0) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let value = trimmed.slice(eq + 1).trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    if (process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  }
+}
+
 const repoRoot = process.env.ACL_REPO_ROOT
   ? path.resolve(process.env.ACL_REPO_ROOT)
   : projectRoot;
+
+loadEnvFile(path.join(repoRoot, '.env'));
+
 const distRoot = path.join(repoRoot, 'dist');
 const port = Number(process.env.PORT || 3000);
 
