@@ -1,0 +1,100 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topBand {
+  flex: 0 0 40vh;
+  min-height: 280px;
+  background: var(--color-background-card);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-xl) var(--spacing-shell-padding);
+}
+
+.topLogo {
+  flex-shrink: 0;
+}
+
+.welcome {
+  max-width: 520px;
+  text-align: right;
+}
+
+.welcomeLead {
+  margin: 0;
+  font-size: var(--font-body-size);
+  color: var(--color-text-secondary);
+}
+
+.welcomeTitle {
+  margin: var(--spacing-xs) 0 var(--spacing-md);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--color-slate-dark);
+}
+
+.welcomeBody {
+  margin: 0;
+  font-size: var(--font-body-size);
+  line-height: var(--font-body-line-height);
+  color: var(--color-charcoal);
+}
+
+.bottomBand {
+  flex: 1;
+  background: var(--color-slate-dark);
+  padding: var(--spacing-xl) var(--spacing-shell-padding);
+  display: flex;
+  align-items: center;
+}
+
+.cards {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-xl);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-height: 220px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: var(--font-section-heading-size);
+  font-weight: var(--font-section-heading-weight);
+  color: var(--color-text-primary);
+}
+
+.cardDescription {
+  margin: 0;
+  flex: 1;
+  font-size: var(--font-body-size);
+  color: var(--color-text-secondary);
+  line-height: var(--font-body-line-height);
+}
+
+@media (max-width: 1023px) {
+  .cards {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .topBand {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .welcome {
+    text-align: center;
+  }
+}

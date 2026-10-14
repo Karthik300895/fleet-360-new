@@ -1,11 +1,12 @@
-import { Navigate, Outlet } from 'react-router-dom'
-
-/** Stub auth check — wired to useAuthStore in Story 1.3 */
-const isAuthenticated = false
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { useAuthStore } from '../stores/useAuthStore'
 
 export function ProtectedRoute() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const location = useLocation()
+
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace state={{ from: location }} />
   }
 
   return <Outlet />

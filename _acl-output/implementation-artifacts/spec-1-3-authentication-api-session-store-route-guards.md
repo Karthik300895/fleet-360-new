@@ -1,5 +1,5 @@
 ---
-status: Approved
+status: In Review
 reviewed_by: Manager (via Markdown Studio)
 review_timestamp: 2026-10-14T05:35:16.326Z
 gate_signature: ACL-STUDIO-APPROVAL-APPROVED
@@ -8,6 +8,7 @@ tier: Tier 1 (Self-Contained)
 type: feature
 created: 2026-09-23
 review_loop_iteration: 0
+baseline_commit: 96a9efe0bb0cc0600d9ebdc1ef4c4cee99e58fb4
 context:
   - _acl-output/implementation-artifacts/epic-1-scope.md
   - _acl-output/implementation-artifacts/spec-1-1-application-foundation-tokens.md
@@ -73,20 +74,20 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `package.json` -- add `zustand` and `msw` dependencies -- AD-2, AD-4
-- [ ] `src/shared/lib/ApiError.ts` -- class `{ code, message, status }` with static `fromResponse` helper -- AD-9
-- [ ] `src/entities/user.ts` -- `User` type (id, email, displayName) -- AD-6
-- [ ] `src/entities/session.ts` -- `Session` type (token, user, expiresAt ISO string) -- AD-6
-- [ ] `src/api/client.ts` -- `apiFetch(path, options)` using `VITE_API_BASE_URL`; throws `ApiError` on non-2xx -- AD-3
-- [ ] `src/api/authApi.ts` -- `login(credentials)` POST `/auth/login`; map DTO → `Session` -- AD-3, AD-6
-- [ ] `src/mocks/handlers/auth.ts` -- MSW handler for `POST */auth/login`; accept valid format; reject `fail@example.com` -- AD-4
-- [ ] `src/mocks/browser.ts` -- `setupWorker` exporting handlers; `startMSW()` async init -- AD-4
-- [ ] `src/stores/useAuthStore.ts` -- Zustand store: `session`, `error`, `isAuthenticated`, `login`, `logout`, `hydrate`; persist/read `fleet360:session` -- AD-2, AD-5
-- [ ] `src/app/ProtectedRoute.tsx` -- read `isAuthenticated` from store; redirect with `state.from` -- AD-5, NFR-6
-- [ ] `src/app/router.tsx` -- add `/devices` and `/devices/:deviceId` stub routes under protected layout -- FR routing seed
-- [ ] `src/features/devices/DevicesStubPage.tsx` -- minimal "Devices — Coming soon" placeholder -- route stub only
-- [ ] `src/main.tsx` -- await `startMSW()` then call `useAuthStore.getState().hydrate()` before render -- boot sequence
-- [ ] Delete `src/api/.gitkeep`, `src/entities/.gitkeep`, `src/stores/.gitkeep`, `src/mocks/.gitkeep`, `src/shared/lib/.gitkeep` -- replaced by real modules
+- [x] `package.json` -- add `zustand` and `msw` dependencies -- AD-2, AD-4
+- [x] `src/shared/lib/ApiError.ts` -- class `{ code, message, status }` with static `fromResponse` helper -- AD-9
+- [x] `src/entities/user.ts` -- `User` type (id, email, displayName) -- AD-6
+- [x] `src/entities/session.ts` -- `Session` type (token, user, expiresAt ISO string) -- AD-6
+- [x] `src/api/client.ts` -- `apiFetch(path, options)` using `VITE_API_BASE_URL`; throws `ApiError` on non-2xx -- AD-3
+- [x] `src/api/authApi.ts` -- `login(credentials)` POST `/auth/login`; map DTO → `Session` -- AD-3, AD-6
+- [x] `src/mocks/handlers/auth.ts` -- MSW handler for `POST */auth/login`; accept valid format; reject `fail@example.com` -- AD-4
+- [x] `src/mocks/browser.ts` -- `setupWorker` exporting handlers; `startMSW()` async init -- AD-4
+- [x] `src/stores/useAuthStore.ts` -- Zustand store: `session`, `error`, `isAuthenticated`, `login`, `logout`, `hydrate`; persist/read `fleet360:session` -- AD-2, AD-5
+- [x] `src/app/ProtectedRoute.tsx` -- read `isAuthenticated` from store; redirect with `state.from` -- AD-5, NFR-6
+- [x] `src/app/router.tsx` -- add `/devices` and `/devices/:deviceId` stub routes under protected layout -- FR routing seed
+- [x] `src/features/devices/DevicesStubPage.tsx` -- minimal "Devices — Coming soon" placeholder -- route stub only
+- [x] `src/main.tsx` -- await `startMSW()` then call `useAuthStore.getState().hydrate()` before render -- boot sequence
+- [x] Delete `src/api/.gitkeep`, `src/entities/.gitkeep`, `src/stores/.gitkeep`, `src/mocks/.gitkeep`, `src/shared/lib/.gitkeep` -- replaced by real modules
 
 **Acceptance Criteria:**
 - Given no session in localStorage, when user navigates to `/`, `/devices`, or `/devices/:id`, then redirect to `/login`
@@ -97,6 +98,10 @@ context:
 - Given `npm run build`, when executed, then build completes with zero TypeScript errors
 
 ## Spec Change Log
+
+- Added `src/vite-env.d.ts` so `VITE_API_BASE_URL` and `VITE_USE_MSW` type-check. Did not add `.env.example` (Ask First).
+- Generated `public/mockServiceWorker.js` and set `msw.workerDirectory` so the browser worker can start. ESLint ignores that generated file.
+- `providers.tsx` stays the empty provider shell; MSW start and `hydrate()` run in `main.tsx` before render.
 
 ## Verification
 
@@ -109,3 +114,31 @@ context:
 - DevTools → Application → localStorage: after programmatic `login()`, `fleet360:session` key present
 - Navigate to `/` with session → Landing stub renders (not redirected)
 - Call `logout()` in console via store → `/` redirects to login
+
+## Suggested Review Order
+
+**Session bootstrap**
+
+- MSW starts before render; auth hydrates from localStorage.
+  [`main.tsx:8`](../../src/main.tsx#L8)
+
+**API boundary**
+
+- Shared fetch wrapper maps failures to `ApiError`.
+  [`client.ts:28`](../../src/api/client.ts#L28)
+
+- Login adapter maps DTO to `Session` entity.
+  [`authApi.ts:36`](../../src/api/authApi.ts#L36)
+
+**Auth state**
+
+- Zustand store persists `fleet360:session` and validates on hydrate.
+  [`useAuthStore.ts:50`](../../src/stores/useAuthStore.ts#L50)
+
+- Route guard redirects unauthenticated users with return path.
+  [`ProtectedRoute.tsx:4`](../../src/app/ProtectedRoute.tsx#L4)
+
+**Mocks**
+
+- MSW login accepts valid email; rejects `fail@example.com`.
+  [`auth.ts:21`](../../src/mocks/handlers/auth.ts#L21)

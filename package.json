@@ -11,9 +11,11 @@
     "start:local": "node scripts/serve-with-markdown-api.mjs"
   },
   "dependencies": {
+    "msw": "2.15.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "react-router-dom": "^7.18.4"
+    "react-router-dom": "^7.18.4",
+    "zustand": "5.0.15"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -28,5 +30,10 @@
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.67.0",
     "vite": "^8.2.2"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }

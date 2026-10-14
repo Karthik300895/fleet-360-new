@@ -1,0 +1,20 @@
+.page {
+  max-width: 720px;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: var(--spacing-md);
+  color: var(--color-primary-blue);
+  text-decoration: none;
+}
+
+.title {
+  margin: 0 0 var(--spacing-sm);
+  font-size: var(--font-page-title-size);
+}
+
+.meta {
+  margin: 0;
+  color: var(--color-text-secondary);
+}

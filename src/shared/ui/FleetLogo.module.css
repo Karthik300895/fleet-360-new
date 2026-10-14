@@ -1,0 +1,26 @@
+.logo {
+  font-family: var(--font-family);
+  font-size: var(--font-logo-fleet-size);
+  font-weight: var(--font-logo-fleet-weight);
+  line-height: var(--font-logo-fleet-line-height);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+}
+
+.fleet {
+  color: var(--color-primary-blue);
+}
+
+.threeSixty {
+  color: var(--color-slate-heading);
+}
+
+.light .fleet,
+.light .threeSixty {
+  color: var(--color-text-on-dark);
+}
+
+.light .threeSixty {
+  opacity: 0.95;
+}

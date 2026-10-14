@@ -15,3 +15,6 @@ export type { ButtonSecondaryProps } from './ButtonSecondary'
 
 export { CardSurface } from './CardSurface'
 export type { CardSurfaceProps } from './CardSurface'
+
+export { FleetLogo } from './FleetLogo'
+export type { FleetLogoProps } from './FleetLogo'

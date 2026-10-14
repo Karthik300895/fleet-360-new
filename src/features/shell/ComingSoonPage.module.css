@@ -1,0 +1,17 @@
+.page {
+  padding: var(--spacing-xl);
+  max-width: 480px;
+}
+
+.title {
+  font-size: var(--font-page-title-size);
+  font-weight: var(--font-page-title-weight);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-md);
+}
+
+.copy {
+  font-size: var(--font-body-size);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-lg);
+}

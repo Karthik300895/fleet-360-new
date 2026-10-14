@@ -1,0 +1,117 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-page-title-size);
+  font-weight: var(--font-page-title-weight);
+}
+
+.uploadLink {
+  color: var(--color-primary-blue);
+  font-weight: var(--font-label-weight);
+  text-decoration: none;
+}
+
+.uploadLink:hover {
+  text-decoration: underline;
+}
+
+.error {
+  margin: 0;
+  color: var(--color-primary-red);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-background-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.table th,
+.table td {
+  padding: var(--spacing-md);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: var(--font-body-size);
+}
+
+.table th {
+  font-size: var(--font-label-size);
+  font-weight: var(--font-label-weight);
+  color: var(--color-text-secondary);
+  background: var(--color-background-page);
+}
+
+.row {
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--color-chip-selected-bg);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--color-primary-blue);
+  outline-offset: -2px;
+}
+
+.deviceName {
+  display: block;
+  font-weight: var(--font-value-weight);
+  color: var(--color-text-primary);
+}
+
+.serial {
+  display: block;
+  font-size: var(--font-label-size);
+  color: var(--color-text-secondary);
+}
+
+.icons {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.skeletonRow {
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(
+    90deg,
+    var(--color-border-subtle),
+    var(--color-background-page),
+    var(--color-border-subtle)
+  );
+}
+
+.empty {
+  padding: var(--spacing-xl);
+  background: var(--color-background-card);
+  border: 1px dashed var(--color-border-dashed);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.empty a {
+  color: var(--color-primary-blue);
+}
