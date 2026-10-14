@@ -1,5 +1,8 @@
 ---
-status: In Review
+status: Approved
+reviewed_by: Manager (via Markdown Studio)
+review_timestamp: 2026-10-14T07:01:24.286Z
+gate_signature: ACL-STUDIO-APPROVAL-APPROVED
 title: 'Story 2.10 — Device Info & Schedule Stub'
 tier: Tier 1 (Self-Contained)
 type: feature
