@@ -1,5 +1,8 @@
 ---
-status: In Review
+status: Approved
+reviewed_by: Manager (via Markdown Studio)
+review_timestamp: 2026-10-14T07:00:42.341Z
+gate_signature: ACL-STUDIO-APPROVAL-APPROVED
 title: 'Story 1.6 — Application Shell & Navigation Stubs'
 tier: Tier 1 (Self-Contained)
 type: feature
