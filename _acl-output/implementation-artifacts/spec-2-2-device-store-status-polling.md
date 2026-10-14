@@ -1,5 +1,8 @@
 ---
-status: In Review
+status: Approved
+reviewed_by: Manager (via Markdown Studio)
+review_timestamp: 2026-10-14T07:00:53.535Z
+gate_signature: ACL-STUDIO-APPROVAL-APPROVED
 title: 'Story 2.2 — Device Store & Status Polling'
 tier: Tier 1 (Self-Contained)
 type: feature
