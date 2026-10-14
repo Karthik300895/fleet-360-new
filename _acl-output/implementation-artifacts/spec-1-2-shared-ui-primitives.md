@@ -1,7 +1,7 @@
 ---
-status: In Review
+status: Approved
 reviewed_by: Manager (via Markdown Studio)
-review_timestamp: 2026-09-23T10:01:58.095Z
+review_timestamp: 2026-10-14T05:35:11.679Z
 gate_signature: ACL-STUDIO-APPROVAL-APPROVED
 title: 'Story 1.2 — Shared UI Primitives'
 tier: Tier 1 (Self-Contained)
