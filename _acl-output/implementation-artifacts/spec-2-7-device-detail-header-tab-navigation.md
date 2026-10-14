@@ -1,5 +1,8 @@
 ---
-status: In Review
+status: Approved
+reviewed_by: Manager (via Markdown Studio)
+review_timestamp: 2026-10-14T07:01:14.707Z
+gate_signature: ACL-STUDIO-APPROVAL-APPROVED
 title: 'Story 2.7 — Device Detail Header & Tab Navigation'
 tier: Tier 1 (Self-Contained)
 type: feature
