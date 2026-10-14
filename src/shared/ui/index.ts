@@ -18,3 +18,9 @@ export type { CardSurfaceProps } from './CardSurface'
 
 export { FleetLogo } from './FleetLogo'
 export type { FleetLogoProps } from './FleetLogo'
+
+export { FilterChip } from './FilterChip'
+export type { FilterChipProps } from './FilterChip'
+
+export { InsightCard } from './InsightCard'
+export type { InsightCardProps } from './InsightCard'

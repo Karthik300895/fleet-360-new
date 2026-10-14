@@ -7,8 +7,9 @@ import { ApplicationShell } from '../features/shell/ApplicationShell'
 import { ComingSoonPage } from '../features/shell/ComingSoonPage'
 import { DevicesRouteLayout } from '../features/devices/DevicesRouteLayout'
 import { DevicesListPage } from '../features/devices/DevicesListPage'
-import { DeviceDetailPage } from '../features/devices/DeviceDetailPage'
+import { DeviceDetailPage, DeviceDetailIndexRedirect } from '../features/devices/DeviceDetailPage'
 import { DeviceUploadPage } from '../features/devices/DeviceUploadPage'
+import { DeviceEditPage } from '../features/devices/DeviceEditPage'
 
 export const router = createBrowserRouter([
   {
@@ -46,7 +47,15 @@ export const router = createBrowserRouter([
                 element: <DeviceUploadPage />,
               },
               {
-                path: ':deviceId/:tab?',
+                path: ':deviceId/edit',
+                element: <DeviceEditPage />,
+              },
+              {
+                path: ':deviceId',
+                element: <DeviceDetailIndexRedirect />,
+              },
+              {
+                path: ':deviceId/:tab',
                 element: <DeviceDetailPage />,
               },
             ],

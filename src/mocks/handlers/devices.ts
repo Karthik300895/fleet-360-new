@@ -11,7 +11,8 @@ function filterDevices(siteId: string | null, search: string | null): typeof MOC
     list = list.filter(
       (device) =>
         device.name.toLowerCase().includes(term) ||
-        device.serialNumber.toLowerCase().includes(term),
+        device.serialNumber.toLowerCase().includes(term) ||
+        device.macAddress.toLowerCase().includes(term),
     )
   }
   return list
@@ -33,6 +34,23 @@ export const deviceHandlers = [
         { status: 404 },
       )
     }
+    return HttpResponse.json(device)
+  }),
+
+  http.patch('*/devices/:deviceId', async ({ params, request }) => {
+    const device = MOCK_DEVICES.find((item) => item.id === params.deviceId)
+    if (!device) {
+      return HttpResponse.json(
+        { code: 'NOT_FOUND', message: 'Device not found.' },
+        { status: 404 },
+      )
+    }
+    const body = (await request.json()) as Record<string, unknown>
+    if (typeof body.name === 'string') device.name = body.name
+    if (typeof body.floor === 'string') device.floor = body.floor
+    if (typeof body.area === 'string') device.area = body.area
+    if (typeof body.contactName === 'string') device.contactName = body.contactName
+    if (typeof body.contactPhone === 'string') device.contactPhone = body.contactPhone
     return HttpResponse.json(device)
   }),
 

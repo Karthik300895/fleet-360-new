@@ -1,0 +1,174 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.sectionTitle {
+  margin: 0 0 var(--spacing-sm);
+  font-size: var(--font-section-heading-size);
+}
+
+.muted {
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.srSummary {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-sm);
+  height: 160px;
+  padding: var(--spacing-md);
+  background: var(--color-background-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.barGroup {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  height: 100%;
+  position: relative;
+}
+
+.barHeat {
+  width: 12px;
+  background: var(--color-heating);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.barCool {
+  width: 12px;
+  background: var(--color-cooling);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.barLabel {
+  position: absolute;
+  bottom: -20px;
+  font-size: 10px;
+  color: var(--color-text-secondary);
+}
+
+.grid,
+.kvGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-md);
+}
+
+.label {
+  display: block;
+  font-size: var(--font-label-size);
+  color: var(--color-text-secondary);
+}
+
+.lineChart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 120px;
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-background-card);
+}
+
+.lineChart span {
+  flex: 1;
+  background: var(--color-primary-blue);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  min-height: 4px;
+}
+
+.controlsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.dial {
+  text-align: center;
+}
+
+.dialLabel {
+  margin: 0 0 var(--spacing-sm);
+  font-size: var(--font-label-size);
+  color: var(--color-text-secondary);
+}
+
+.dialCircle {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  border-radius: 50%;
+  border: 6px solid var(--color-primary-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-value-size);
+  font-weight: var(--font-value-weight);
+}
+
+.dialDisabled {
+  border-color: var(--color-text-muted);
+  color: var(--color-text-muted);
+}
+
+.dialActions {
+  margin-top: var(--spacing-sm);
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.dialActions button {
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-background-card);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-xs) var(--spacing-md);
+  cursor: pointer;
+}
+
+.dialActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.notesLabel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  font-size: var(--font-label-size);
+  color: var(--color-text-secondary);
+}
+
+.notesLabel textarea {
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family);
+  font-size: var(--font-body-size);
+}
+
+.stub {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  align-items: flex-start;
+}

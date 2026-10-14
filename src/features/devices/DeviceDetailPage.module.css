@@ -1,12 +1,30 @@
 .page {
-  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-label-size);
+  color: var(--color-text-secondary);
 }
 
 .back {
-  display: inline-block;
-  margin-bottom: var(--spacing-md);
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
   color: var(--color-primary-blue);
-  text-decoration: none;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: 1fr minmax(220px, 320px);
+  gap: var(--spacing-lg);
+  align-items: start;
 }
 
 .title {
@@ -14,7 +32,46 @@
   font-size: var(--font-page-title-size);
 }
 
-.meta {
+.badges {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.meta,
+.contact {
   margin: 0;
+  font-size: var(--font-body-size);
   color: var(--color-text-secondary);
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.tab {
+  text-decoration: none;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-pill);
+  color: var(--color-charcoal);
+  font-size: var(--font-body-size);
+  border: 1px solid transparent;
+}
+
+.tabActive {
+  background: var(--color-chip-selected-bg);
+  color: var(--color-primary-blue);
+  border-color: var(--color-chip-selected-border);
+}
+
+.tabBody {
+  padding-top: var(--spacing-sm);
+}
+
+@media (max-width: 900px) {
+  .header {
+    grid-template-columns: 1fr;
+  }
 }

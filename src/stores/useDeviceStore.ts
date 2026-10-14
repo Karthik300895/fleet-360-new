@@ -15,6 +15,7 @@ type DeviceState = {
   fetchDevices: (filter?: DeviceFilter) => Promise<void>
   startPolling: (filter?: DeviceFilter) => void
   stopPolling: () => void
+  refresh: () => Promise<void>
 }
 
 export const useDeviceStore = create<DeviceState>((set, get) => ({
@@ -56,5 +57,9 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
       clearInterval(pollTimer)
     }
     set({ pollTimer: null })
+  },
+
+  async refresh() {
+    await get().fetchDevices(get().lastFilter)
   },
 }))

@@ -2,9 +2,14 @@ import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import { useShellStore } from '../../stores/useShellStore'
 import { useDeviceStore } from '../../stores/useDeviceStore'
+import { useDeviceListUiStore } from '../../stores/useDeviceListUiStore'
 
 export function DevicesRouteLayout() {
   const selectedSiteId = useShellStore((state) => state.selectedSiteId)
+
+  useEffect(() => {
+    useDeviceListUiStore.getState().hydrate()
+  }, [])
 
   useEffect(() => {
     const siteFilter = selectedSiteId === 'all' ? undefined : selectedSiteId

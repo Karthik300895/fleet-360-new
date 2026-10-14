@@ -17,6 +17,28 @@
   font-weight: var(--font-page-title-weight);
 }
 
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.search {
+  flex: 1;
+  min-width: 200px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-body-size);
+}
+
+.matchCount {
+  margin: 0;
+  font-size: var(--font-label-size);
+  color: var(--color-text-secondary);
+}
+
 .uploadLink {
   color: var(--color-primary-blue);
   font-weight: var(--font-label-weight);
@@ -56,17 +78,66 @@
   background: var(--color-background-page);
 }
 
-.row {
+.clickable {
   cursor: pointer;
 }
 
-.row:hover {
+.clickable:hover {
   background: var(--color-chip-selected-bg);
 }
 
-.row:focus-visible {
+.clickable:focus-visible {
   outline: 2px solid var(--color-primary-blue);
   outline-offset: -2px;
+}
+
+.actionsCol {
+  width: 72px;
+  text-align: right;
+}
+
+.menuWrap {
+  position: relative;
+  display: inline-block;
+}
+
+.kebab {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+}
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  min-width: 120px;
+  background: var(--color-background-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-xs);
+}
+
+.menu button {
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-body-size);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.menu button:hover {
+  background: var(--color-background-page);
 }
 
 .deviceName {

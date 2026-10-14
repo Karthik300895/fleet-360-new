@@ -2,22 +2,14 @@ import type { Device } from '../entities/device'
 import type { DeviceFilter } from '../entities/deviceFilter'
 import { apiFetch } from './client'
 
-type DeviceDto = {
-  id: string
-  name: string
-  serialNumber: string
-  siteId: string
-  siteName: string
-  type: Device['type']
-  status: Device['status']
-  wifiConnected: boolean
-  powerOn: boolean
-  hasAlert: boolean
-  modeLabel: string
-}
+type DeviceDto = Device
 
-function toDevice(dto: DeviceDto): Device {
-  return { ...dto }
+export type DeviceUpdateInput = {
+  name?: string
+  floor?: string
+  area?: string
+  contactName?: string
+  contactPhone?: string
 }
 
 function buildQuery(filter?: DeviceFilter): string {
@@ -35,13 +27,18 @@ function buildQuery(filter?: DeviceFilter): string {
 
 export const devicesApi = {
   async list(filter?: DeviceFilter): Promise<Device[]> {
-    const dtos = await apiFetch<DeviceDto[]>(`/devices${buildQuery(filter)}`)
-    return dtos.map(toDevice)
+    return apiFetch<DeviceDto[]>(`/devices${buildQuery(filter)}`)
   },
 
   async getById(id: string): Promise<Device> {
-    const dto = await apiFetch<DeviceDto>(`/devices/${id}`)
-    return toDevice(dto)
+    return apiFetch<DeviceDto>(`/devices/${id}`)
+  },
+
+  async update(id: string, input: DeviceUpdateInput): Promise<Device> {
+    return apiFetch<DeviceDto>(`/devices/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    })
   },
 
   async remove(id: string): Promise<void> {
