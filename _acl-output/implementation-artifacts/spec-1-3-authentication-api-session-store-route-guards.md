@@ -1,7 +1,10 @@
 ---
+status: Approved
+reviewed_by: Manager (via Markdown Studio)
+review_timestamp: 2026-10-14T05:35:16.326Z
+gate_signature: ACL-STUDIO-APPROVAL-APPROVED
 title: 'Story 1.3 — Authentication API, Session Store & Route Guards'
 tier: Tier 1 (Self-Contained)
-status: In Review
 type: feature
 created: 2026-09-23
 review_loop_iteration: 0
