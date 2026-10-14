@@ -1,5 +1,8 @@
 ---
-status: In Review
+status: Approved
+reviewed_by: Manager (via Markdown Studio)
+review_timestamp: 2026-10-14T07:00:46.853Z
+gate_signature: ACL-STUDIO-APPROVAL-APPROVED
 title: 'Story 1.7 — Site Selector & Shell State'
 tier: Tier 1 (Self-Contained)
 type: feature
